@@ -85,13 +85,13 @@ def PunchTemplate(self, image, config):
             punch_key_str = config["KeySetting"]["Punch"]["Keys"][0]["key"]
             pynput_punch_key = self.get_pynput_key(punch_key_str)
             # Check for left punch motion
-            if left_speed > self.PunchTemplateVars["punch_threshold"] and (current_time - self.PunchTemplateVars["last_left_punch_time"]) > self.punch_interval:
+            if left_speed > self.PunchTemplateVars["punch_threshold"] and (current_time - self.PunchTemplateVars["last_left_punch_time"]) > self.PunchTemplateVars["punch_interval"]:
                 keyboard.press(pynput_punch_key)
                 keyboard.release(pynput_punch_key)
                 self.PunchTemplateVars["last_left_punch_time"] = current_time
 
             # Check for right punch motion
-            if right_speed > self.PunchTemplateVars["punch_threshold"] and (current_time - self.PunchTemplateVars["last_right_punch_time"]) > self.punch_interval:
+            if right_speed > self.PunchTemplateVars["punch_threshold"] and (current_time - self.PunchTemplateVars["last_right_punch_time"]) > self.PunchTemplateVars["punch_interval"]:
                 keyboard.press(pynput_punch_key)
                 keyboard.release(pynput_punch_key)
                 self.PunchTemplateVars["last_right_punch_time"] = current_time
