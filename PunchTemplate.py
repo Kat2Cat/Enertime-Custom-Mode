@@ -23,7 +23,8 @@ def PunchTemplate(self, image, config):
                     "label": "Punch Key",
                     "key": "Space"
                 },
-            ]
+            ],
+            "Checkboxes": []
         }
         
         self.update_config(config)

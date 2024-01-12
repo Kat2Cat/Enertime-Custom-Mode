@@ -1,8 +1,9 @@
 import mediapipe as mp
 import time
 import json
-import keyboard
+from pynput.keyboard import Controller
 
+keyboard = Controller()
 # initialize mediapipe
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
@@ -29,7 +30,8 @@ def JumpTemplate(self, image, config):
                     "label": "Rotate Left Key",
                     "key": "a"
                 }
-            ]
+            ],
+            "Checkboxes": []
         }
         
         self.update_config(config)
@@ -80,8 +82,10 @@ def JumpTemplate(self, image, config):
             right_hip_speed = self.calculate_speed(right_hip, self.JumpTemplateVars["jump_prev_right_hip"], time_diff)
             # Check if the upward speed exceeds the threshold
             if (left_hip_speed > self.JumpTemplateVars["jump_threshold"] or right_hip_speed > self.JumpTemplateVars["jump_threshold"]) and (current_time - self.JumpTemplateVars["prev_jump_time"]) > self.JumpTemplateVars["jump_interval"]:
-                keyboard.press(config["KeySetting"]["Jump"]["Keys"][0]["key"])
-                keyboard.release(config["KeySetting"]["Jump"]["Keys"][0]["key"])
+                jump_key_str = config["KeySetting"]["Jump"]["Keys"][0]["key"]
+                pynput_jump_key = self.get_pynput_key(jump_key_str)
+                keyboard.press(pynput_jump_key)
+                keyboard.release(pynput_jump_key)
                 self.JumpTemplateVars["prev_jump_time"] = current_time
             # Update the previous hip positions and timestamp
             self.JumpTemplateVars["jump_prev_left_hip"] = left_hip

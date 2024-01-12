@@ -46,9 +46,9 @@ def RotateTemplate(self, image, config):
         setattr(self, "RotateTemplateVars", {
             "rotate_holding_left_key": False,
             "rotate_holding_right_key": False,
-            "rotate_threshold": config['KeySetting']['PunchTemplate']['Sensitive'] * 0.01,
-            "rotate_frequency": config['KeySetting']['PunchTemplate']['Frequency'] * 0.1,
-            "RotateAllowLongPress": config["KeySetting"]["Rotate"]["Checkboxes"][0]["checked"]
+            "rotate_threshold": config['KeySetting']['RotateTemplate']['Sensitive'] * 0.01,
+            "rotate_frequency": config['KeySetting']['RotateTemplate']['Frequency'] * 0.1,
+            "RotateAllowLongPress": config["KeySetting"]["RotateTemplate"]["Checkboxes"][0]["checked"]
         })
         
     with mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5) as hands:
