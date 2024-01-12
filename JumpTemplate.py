@@ -22,14 +22,6 @@ def JumpTemplate(self, image, config):
                     "label": "Jump Key",
                     "key": "Space"
                 },
-                {
-                    "label": "Rotate Right Key",
-                    "key": "d"
-                },
-                {
-                    "label": "Rotate Left Key",
-                    "key": "a"
-                }
             ],
             "Checkboxes": []
         }
