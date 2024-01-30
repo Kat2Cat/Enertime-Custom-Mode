@@ -44,62 +44,63 @@ def PunchTemplate(self, image, config):
             "punch_interval": config['KeySetting']['PunchTemplate']['Frequency'] * 0.01,
         })
         
-    with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
-        results = pose.process(image)
+    if image is not None:
+        with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+            results = pose.process(image)
 
-        mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+            mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
-        if results.pose_landmarks:
-            current_time = time.time()
-            elapsed_time = current_time - self.PunchTemplateVars["punch_prev_time"]
-            left_wrist = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_WRIST]
-            right_wrist = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST]
+            if results.pose_landmarks:
+                current_time = time.time()
+                elapsed_time = current_time - self.PunchTemplateVars["punch_prev_time"]
+                left_wrist = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_WRIST]
+                right_wrist = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST]
 
-            # Update positions and calculate velocity
-            if left_wrist.visibility > self.visibility_threshold:                      
-                current_left_position = np.array([left_wrist.x, left_wrist.y, left_wrist.z])
-                if self.showedError:
-                    self.errorSignal.emit("")
-                    self.showedError = False
-            else:
-                current_left_position = np.array([0, 0, 0])
-                if not self.showedError:
-                    self.errorSignal.emit("Please make sure your whole body is in the frame.")
-                    self.showedError = True
-            if right_wrist.visibility > self.visibility_threshold:
-                current_right_position = np.array([right_wrist.x, right_wrist.y, right_wrist.z])
-                if self.showedError:
-                    self.errorSignal.emit("")
-                    self.showedError = False
-            else:
-                current_right_position = np.array([0, 0, 0])
-                if not self.showedError:
-                    self.errorSignal.emit("Please make sure your whole body is in the frame.")
-                    self.showedError = True
+                # Update positions and calculate velocity
+                if left_wrist.visibility > self.visibility_threshold:                      
+                    current_left_position = np.array([left_wrist.x, left_wrist.y, left_wrist.z])
+                    if self.showedError:
+                        self.errorSignal.emit("")
+                        self.showedError = False
+                else:
+                    current_left_position = np.array([0, 0, 0])
+                    if not self.showedError:
+                        self.errorSignal.emit("Please make sure your whole body is in the frame.")
+                        self.showedError = True
+                if right_wrist.visibility > self.visibility_threshold:
+                    current_right_position = np.array([right_wrist.x, right_wrist.y, right_wrist.z])
+                    if self.showedError:
+                        self.errorSignal.emit("")
+                        self.showedError = False
+                else:
+                    current_right_position = np.array([0, 0, 0])
+                    if not self.showedError:
+                        self.errorSignal.emit("Please make sure your whole body is in the frame.")
+                        self.showedError = True
+                    
+                left_velocity = current_left_position - self.PunchTemplateVars["punch_previous_left_position"]
+                right_velocity = current_right_position - self.PunchTemplateVars["punch_previous_right_position"]
+
+                left_speed = np.linalg.norm(left_velocity) / elapsed_time
+                right_speed = np.linalg.norm(right_velocity) / elapsed_time
                 
-            left_velocity = current_left_position - self.PunchTemplateVars["punch_previous_left_position"]
-            right_velocity = current_right_position - self.PunchTemplateVars["punch_previous_right_position"]
+                punch_key_str = config["KeySetting"]["Punch"]["Keys"][0]["key"]
+                pynput_punch_key = self.get_pynput_key(punch_key_str)
+                # Check for left punch motion
+                if left_speed > self.PunchTemplateVars["punch_threshold"] and (current_time - self.PunchTemplateVars["last_left_punch_time"]) > self.PunchTemplateVars["punch_interval"]:
+                    keyboard.press(pynput_punch_key)
+                    keyboard.release(pynput_punch_key)
+                    self.PunchTemplateVars["last_left_punch_time"] = current_time
 
-            left_speed = np.linalg.norm(left_velocity) / elapsed_time
-            right_speed = np.linalg.norm(right_velocity) / elapsed_time
-            
-            punch_key_str = config["KeySetting"]["Punch"]["Keys"][0]["key"]
-            pynput_punch_key = self.get_pynput_key(punch_key_str)
-            # Check for left punch motion
-            if left_speed > self.PunchTemplateVars["punch_threshold"] and (current_time - self.PunchTemplateVars["last_left_punch_time"]) > self.PunchTemplateVars["punch_interval"]:
-                keyboard.press(pynput_punch_key)
-                keyboard.release(pynput_punch_key)
-                self.PunchTemplateVars["last_left_punch_time"] = current_time
+                # Check for right punch motion
+                if right_speed > self.PunchTemplateVars["punch_threshold"] and (current_time - self.PunchTemplateVars["last_right_punch_time"]) > self.PunchTemplateVars["punch_interval"]:
+                    keyboard.press(pynput_punch_key)
+                    keyboard.release(pynput_punch_key)
+                    self.PunchTemplateVars["last_right_punch_time"] = current_time
 
-            # Check for right punch motion
-            if right_speed > self.PunchTemplateVars["punch_threshold"] and (current_time - self.PunchTemplateVars["last_right_punch_time"]) > self.PunchTemplateVars["punch_interval"]:
-                keyboard.press(pynput_punch_key)
-                keyboard.release(pynput_punch_key)
-                self.PunchTemplateVars["last_right_punch_time"] = current_time
-
-            self.PunchTemplateVars["punch_previous_left_position"] = current_left_position
-            self.PunchTemplateVars["punch_previous_right_position"] = current_right_position
-            self.PunchTemplateVars["punch_prev_time"] = current_time
-            
-        return image
+                self.PunchTemplateVars["punch_previous_left_position"] = current_left_position
+                self.PunchTemplateVars["punch_previous_right_position"] = current_right_position
+                self.PunchTemplateVars["punch_prev_time"] = current_time
+                
+            return image
     
